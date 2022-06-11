@@ -35,7 +35,7 @@ functionality since they are missing one possible states that it has.
 
 ```go
 // Working with values that can be null or unset
-val := omitnull.New[int]()
+var val omitnull.Val[int]
 val.Set(5)  // set the value to 5
 val.Null()  // set the value to null
 val.Unset() // unset the value (omitted/undefined)
@@ -58,6 +58,20 @@ val.IsUnset() // == false
 v, ok := val.Get() // returns (X, true) if the value is present
 v := val.GetOr(6)  // returns 6 if no value is present
 v := val.MustGet() // panics if no value is there
+
+// Convert between opt types
+val.MustGetNull() // returns null.Val, but lossy, panics if val == null
+val.MustGetOmit() // returns omit.Val, but lossy, panics if val == omit
+omitnull.FromNull(null.From(5))
+omitnull.FromOmit(omit.From(5))
+
+// Converting between incompatible types
+o := omit.From(5)
+n := null.From(6)
+_ = null.From(o.MustGet()) // This panics when o == unset
+_ = omit.From(n.MustGet()) // This panics when n == null
+_ = null.FromBool(o.Get()) // This conflates null/omitted, technically incorrect
+_ = omit.FromBool(n.Get()) // This conflates null/omitted, technically incorrect
 ```
 
 ## Permutations

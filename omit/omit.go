@@ -5,6 +5,7 @@ package omit
 import (
 	"bytes"
 	"database/sql/driver"
+	"encoding"
 	"encoding/json"
 	"errors"
 	"reflect"
@@ -13,16 +14,16 @@ import (
 	"github.com/aarondl/opt/internal/globaldata"
 )
 
-// State is the state of the nullable object
-type State int
+// state is the state of the omittable object
+type state int
 
 const (
-	StateUnset State = 0
-	StateSet   State = 1
+	StateUnset state = 0
+	StateSet   state = 1
 )
 
 // String -er interface implementation
-func (s State) String() string {
+func (s state) String() string {
 	switch s {
 	case StateUnset:
 		return "unset"
@@ -34,14 +35,10 @@ func (s State) String() string {
 }
 
 // Val allows representing a value with a state of "unset" or "set".
+// Its zero value is usfel and initially "unset".
 type Val[T any] struct {
 	value T
-	state State
-}
-
-// New creates a new value that is unset, shorthand for Val[T]{}
-func New[T any]() Val[T] {
-	return Val[T]{}
+	state state
 }
 
 // From a value which is considered 'set'
@@ -64,6 +61,18 @@ func FromPtr[T any](val *T) Val[T] {
 	}
 }
 
+// FromCond conditionally creates a 'set' value if the bool is true, else
+// it will return an omitted value.
+func FromCond[T any](val T, ok bool) Val[T] {
+	if !ok {
+		return Val[T]{}
+	}
+	return Val[T]{
+		value: val,
+		state: StateSet,
+	}
+}
+
 // Get the underlying value, if one exists.
 func (v Val[T]) Get() (T, bool) {
 	if v.state == StateSet {
@@ -80,6 +89,15 @@ func (v Val[T]) GetOr(fallback T) T {
 		return v.value
 	}
 	return fallback
+}
+
+// GetOrZero returns the zero value for T if the value was omitted.
+func (v Val[T]) GetOrZero() T {
+	if v.state != StateSet {
+		var t T
+		return t
+	}
+	return v.value
 }
 
 // MustGet retrieves the value or panics if it's null
@@ -127,17 +145,6 @@ func (v *Val[T]) Unset() {
 	v.state = StateUnset
 }
 
-// SetPtr sets the value to (value, set) if val is non-nil or (??, unset) if
-// not. The value is dereferenced before stored.
-func (v *Val[T]) SetPtr(val *T) {
-	if val == nil {
-		v.state = StateUnset
-		return
-	}
-	v.value = *val
-	v.state = StateSet
-}
-
 // IsSet returns true if v contains a non-null value
 func (v Val[T]) IsSet() bool {
 	return v.state == StateSet
@@ -149,16 +156,8 @@ func (v Val[T]) IsUnset() bool {
 }
 
 // State retrieves the internal state, mostly useful for testing.
-func (v Val[T]) State() State {
+func (v Val[T]) State() state {
 	return v.state
-}
-
-// Ptr returns a pointer to the value, or nil if unset/null.
-func (v Val[T]) Ptr() *T {
-	if v.state == StateSet {
-		return &v.value
-	}
-	return nil
 }
 
 // UnmarshalJSON implements json.Unmarshaler. Notably will fail to unmarshal
@@ -166,6 +165,8 @@ func (v Val[T]) Ptr() *T {
 func (v *Val[T]) UnmarshalJSON(data []byte) error {
 	switch {
 	case len(data) == 0:
+		var zero T
+		v.value = zero
 		v.state = StateUnset
 		return nil
 	case bytes.Equal(data, globaldata.JSONNull):
@@ -206,6 +207,12 @@ func (v Val[T]) MarshalText() ([]byte, error) {
 		return nil, nil
 	}
 
+	refVal := reflect.ValueOf(v.value)
+	if refVal.Type().Implements(globaldata.EncodingTextMarshalerIntf) {
+		valuer := refVal.Interface().(encoding.TextMarshaler)
+		return valuer.MarshalText()
+	}
+
 	var text string
 	if err := opt.ConvertAssign(&text, v.value); err != nil {
 		return nil, err
@@ -216,7 +223,19 @@ func (v Val[T]) MarshalText() ([]byte, error) {
 // UnmarshalText implements encoding.TextUnmarshaler.
 func (v *Val[T]) UnmarshalText(text []byte) error {
 	if len(text) == 0 {
+		var zero T
+		v.value = zero
 		v.state = StateUnset
+		return nil
+	}
+
+	refVal := reflect.ValueOf(&v.value)
+	if refVal.Type().Implements(globaldata.EncodingTextUnmarshalerIntf) {
+		valuer := refVal.Interface().(encoding.TextUnmarshaler)
+		if err := valuer.UnmarshalText(text); err != nil {
+			return err
+		}
+		v.state = StateSet
 		return nil
 	}
 
@@ -262,28 +281,5 @@ func (v Val[T]) Value() (driver.Value, error) {
 		return valuer.Value()
 	}
 
-	switch refVal.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return refVal.Int(), nil
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		newVal := refVal.Convert(globaldata.Int64Type)
-		return newVal.Int(), nil
-	case reflect.Bool:
-		return v.value, nil
-	case reflect.String:
-		return v.value, nil
-	case reflect.Slice:
-		itemKind := refVal.Type().Elem().Kind()
-		if itemKind == reflect.Uint8 {
-			return v.value, nil
-		}
-		return nil, errors.New("underlying slice type has no implementation for driver.Valuer")
-	case reflect.Struct:
-		if refVal.Type() == globaldata.TimeTimeType {
-			return v.value, nil
-		}
-		return nil, errors.New("underlying struct type has no implementation for driver.Valuer")
-	default:
-		return nil, errors.New("underlying type has no implementation for driver.Valuer")
-	}
+	return v.value, nil
 }

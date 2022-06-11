@@ -5,25 +5,27 @@ package omitnull
 import (
 	"bytes"
 	"database/sql/driver"
+	"encoding"
 	"encoding/json"
-	"errors"
 	"reflect"
 
 	"github.com/aarondl/opt"
 	"github.com/aarondl/opt/internal/globaldata"
+	"github.com/aarondl/opt/null"
+	"github.com/aarondl/opt/omit"
 )
 
-// State is the state of the nullable object
-type State int
+// state is the state of the nullable object
+type state int
 
 const (
-	StateUnset State = 0
-	StateNull  State = 1
-	StateSet   State = 2
+	StateUnset state = 0
+	StateNull  state = 1
+	StateSet   state = 2
 )
 
 // String -er interface implementation
-func (s State) String() string {
+func (s state) String() string {
 	switch s {
 	case StateUnset:
 		return "unset"
@@ -37,15 +39,10 @@ func (s State) String() string {
 }
 
 // Val allows representing a value with a state of "unset", "null", or
-// "set".
+// "set". Its zero value is usfel and initially "unset".
 type Val[T any] struct {
 	value T
-	state State
-}
-
-// New creates a new value that is unset, shorthand for Val[T]{}
-func New[T any]() Val[T] {
-	return Val[T]{}
+	state state
 }
 
 // From a value which is considered 'set'
@@ -68,6 +65,24 @@ func FromPtr[T any](val *T) Val[T] {
 	}
 }
 
+// FromNull constructs a value from a nullable value. This is a lossless
+// conversion and cannot fail.
+func FromNull[T any](val null.Val[T]) Val[T] {
+	if v, ok := val.Get(); ok {
+		return From(v)
+	}
+	return Val[T]{state: StateNull}
+}
+
+// FromOmit constructs a value from a omittable value. This is a lossless
+// conversion and cannot fail.
+func FromOmit[T any](val omit.Val[T]) Val[T] {
+	if v, ok := val.Get(); ok {
+		return From(v)
+	}
+	return Val[T]{}
+}
+
 // Get the underlying value, if one exists.
 func (v Val[T]) Get() (T, bool) {
 	if v.state == StateSet {
@@ -86,7 +101,16 @@ func (v Val[T]) GetOr(fallback T) T {
 	return fallback
 }
 
-// MustGet retrieves the value or panics if it's null
+// GetOrZero returns the zero value for T if the value was omitted or null.
+func (v Val[T]) GetOrZero() T {
+	if v.state != StateSet {
+		var t T
+		return t
+	}
+	return v.value
+}
+
+// MustGet retrieves the value or panics if it's null or omitted
 func (v Val[T]) MustGet() T {
 	val, ok := v.Get()
 	if !ok {
@@ -94,6 +118,30 @@ func (v Val[T]) MustGet() T {
 	}
 
 	return val
+}
+
+// MustGetNull retrieves the value as a nullable value or panics if it's omitted
+func (v Val[T]) MustGetNull() null.Val[T] {
+	switch v.state {
+	case StateSet:
+		return null.From(v.value)
+	case StateNull:
+		return null.Val[T]{}
+	default:
+		panic("no value present")
+	}
+}
+
+// MustGetOmit retrieves the value as an omittable value or panics if it's null
+func (v Val[T]) MustGetOmit() omit.Val[T] {
+	switch v.state {
+	case StateSet:
+		return omit.From(v.value)
+	case StateUnset:
+		return omit.Val[T]{}
+	default:
+		panic("null value present")
+	}
 }
 
 // Map transforms the value inside if it is set, else it returns a value of the
@@ -165,25 +213,34 @@ func (v Val[T]) IsUnset() bool {
 }
 
 // State retrieves the internal state, mostly useful for testing.
-func (v Val[T]) State() State {
+func (v Val[T]) State() state {
 	return v.state
 }
 
-// Ptr returns a pointer to the value, or nil if unset/null.
-func (v Val[T]) Ptr() *T {
-	if v.state == StateSet {
+// MustPtr returns a pointer to the value, or nil if null, panics if it is not
+// one of (null, set).
+func (v Val[T]) MustPtr() *T {
+	switch v.state {
+	case StateSet:
 		return &v.value
+	case StateNull:
+		return nil
+	default:
+		panic("omit value cannot be coerced into pointer")
 	}
-	return nil
 }
 
 // UnmarshalJSON implements json.Unmarshaler
 func (v *Val[T]) UnmarshalJSON(data []byte) error {
 	switch {
 	case len(data) == 0:
+		var zero T
+		v.value = zero
 		v.state = StateUnset
 		return nil
 	case bytes.Equal(data, globaldata.JSONNull):
+		var zero T
+		v.value = zero
 		v.state = StateNull
 		return nil
 	default:
@@ -222,6 +279,12 @@ func (v Val[T]) MarshalText() ([]byte, error) {
 		return nil, nil
 	}
 
+	refVal := reflect.ValueOf(v.value)
+	if refVal.Type().Implements(globaldata.EncodingTextMarshalerIntf) {
+		valuer := refVal.Interface().(encoding.TextMarshaler)
+		return valuer.MarshalText()
+	}
+
 	var text string
 	if err := opt.ConvertAssign(&text, v.value); err != nil {
 		return nil, err
@@ -232,7 +295,19 @@ func (v Val[T]) MarshalText() ([]byte, error) {
 // UnmarshalText implements encoding.TextUnmarshaler.
 func (v *Val[T]) UnmarshalText(text []byte) error {
 	if len(text) == 0 {
+		var zero T
+		v.value = zero
 		v.state = StateUnset
+		return nil
+	}
+
+	refVal := reflect.ValueOf(&v.value)
+	if refVal.Type().Implements(globaldata.EncodingTextUnmarshalerIntf) {
+		valuer := refVal.Interface().(encoding.TextUnmarshaler)
+		if err := valuer.UnmarshalText(text); err != nil {
+			return err
+		}
+		v.state = StateSet
 		return nil
 	}
 
@@ -248,6 +323,8 @@ func (v *Val[T]) UnmarshalText(text []byte) error {
 // sql.Scanner then it will call that.
 func (v *Val[T]) Scan(value any) error {
 	if value == nil {
+		var zero T
+		v.value = zero
 		v.state = StateNull
 		return nil
 	}
@@ -276,28 +353,5 @@ func (v Val[T]) Value() (driver.Value, error) {
 		return valuer.Value()
 	}
 
-	switch refVal.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return refVal.Int(), nil
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		newVal := refVal.Convert(globaldata.Int64Type)
-		return newVal.Int(), nil
-	case reflect.Bool:
-		return v.value, nil
-	case reflect.String:
-		return v.value, nil
-	case reflect.Slice:
-		itemKind := refVal.Type().Elem().Kind()
-		if itemKind == reflect.Uint8 {
-			return v.value, nil
-		}
-		return nil, errors.New("underlying slice type has no implementation for driver.Valuer")
-	case reflect.Struct:
-		if refVal.Type() == globaldata.TimeTimeType {
-			return v.value, nil
-		}
-		return nil, errors.New("underlying struct type has no implementation for driver.Valuer")
-	default:
-		return nil, errors.New("underlying type has no implementation for driver.Valuer")
-	}
+	return v.value, nil
 }
