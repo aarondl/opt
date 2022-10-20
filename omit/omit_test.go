@@ -120,6 +120,31 @@ func TestMarshalJSON(t *testing.T) {
 	checkJSON(t, val, `"hello"`)
 	val.Unset()
 	checkJSON(t, val, `null`)
+
+}
+
+func TestMarshalJSONIsZero(t *testing.T) {
+	type testStruct struct {
+		ID int
+	}
+
+	valSlice := Val[[]int]{}
+	valSlice.Set(nil)
+	if !valSlice.MarshalJSONIsZero() {
+		t.Error("should be zero")
+	}
+
+	valMap := Val[map[string]int]{}
+	valMap.Set(nil)
+	if !valMap.MarshalJSONIsZero() {
+		t.Error("should be zero")
+	}
+
+	valStruct := Val[*testStruct]{}
+	valStruct.Set(nil)
+	if !valStruct.MarshalJSONIsZero() {
+		t.Error("should be zero")
+	}
 }
 
 func TestUnmarshalJSON(t *testing.T) {

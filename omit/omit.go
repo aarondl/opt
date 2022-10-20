@@ -195,10 +195,45 @@ func (v *Val[T]) UnmarshalJSON(data []byte) error {
 func (v Val[T]) MarshalJSON() ([]byte, error) {
 	switch v.state {
 	case StateSet:
+
 		return json.Marshal(v.value)
 	default:
 		return globaldata.JSONNull, nil
 	}
+}
+
+// MarshalJSONIsZero returns true if this value should be omitted by the json
+// marshaler.
+//
+// There is a special case in which we omit the value even if the value is `set`
+// which is when the value is going to write out `nil` (pointers, maps
+// and slices that are nil) when marshaled.
+//
+// The reason this is important is if we marshal(From[[]int](nil)) with the
+// special json fork, it will emit `null` without this override. This is bad
+// because this same package even with the json fork cannot consume a null.
+//
+// In order to achieve symmetry in encoding/decoding we'll quietly omit nil
+// maps, slices, and ptrs as it was likely a mistake to try to .From(nil)
+// for this type of value anyway.
+func (v Val[T]) MarshalJSONIsZero() bool {
+	if v.state == StateUnset {
+		return true
+	}
+
+	typ := reflect.TypeOf(v.value)
+	for typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+
+	switch typ.Kind() {
+	case reflect.Map, reflect.Struct, reflect.Slice:
+		if reflect.ValueOf(v.value).IsNil() {
+			return true
+		}
+	}
+
+	return false
 }
 
 // MarshalText implements encoding.TextMarshaler.

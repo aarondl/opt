@@ -230,6 +230,12 @@ func (v Val[T]) MustPtr() *T {
 	}
 }
 
+// MarshalJSONIsZero returns true if this value should be omitted by the json
+// marshaler.
+func (v Val[T]) MarshalJSONIsZero() bool {
+	return v.state == StateUnset
+}
+
 // UnmarshalJSON implements json.Unmarshaler
 func (v *Val[T]) UnmarshalJSON(data []byte) error {
 	switch {
