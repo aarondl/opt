@@ -221,13 +221,8 @@ func (v Val[T]) MarshalJSONIsZero() bool {
 		return true
 	}
 
-	typ := reflect.TypeOf(v.value)
-	for typ.Kind() == reflect.Ptr {
-		typ = typ.Elem()
-	}
-
-	switch typ.Kind() {
-	case reflect.Map, reflect.Struct, reflect.Slice:
+	switch reflect.TypeOf(v.value).Kind() {
+	case reflect.Map, reflect.Slice, reflect.Ptr:
 		if reflect.ValueOf(v.value).IsNil() {
 			return true
 		}
