@@ -41,6 +41,19 @@ import (
 	"reflect"
 	"strconv"
 	"time"
+
+	"github.com/aarondl/json"
+)
+
+// JSONMarshal and JSONUnmarshal can be changed to the stdlib's
+// json.Marshal (or other json package) if you choose not to use the fork.
+//
+// The github.com/aarondl/json fork has correct behavior for omit and omitnull
+// whereas the standard lib encoding/json will produce asymmetrical results
+// where json.Unmarshal(json.Marshal(value)) will fail.
+var (
+	JSONMarshal   = json.Marshal
+	JSONUnmarshal = json.Unmarshal
 )
 
 var errNilPtr = errors.New("destination pointer is nil") // embedded in descriptive error

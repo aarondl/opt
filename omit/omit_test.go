@@ -3,10 +3,11 @@ package omit
 import (
 	"bytes"
 	"database/sql/driver"
-	"encoding/json"
 	"net"
 	"testing"
 	"time"
+
+	"github.com/aarondl/opt"
 )
 
 func TestConstruction(t *testing.T) {
@@ -153,11 +154,11 @@ func TestUnmarshalJSON(t *testing.T) {
 	hello := Val[string]{}
 	checkState(t, hello, StateUnset)
 
-	if err := json.Unmarshal([]byte("null"), &hello); err == nil {
+	if err := opt.JSONUnmarshal([]byte("null"), &hello); err == nil {
 		t.Error("cannot accept a null")
 	}
 
-	if err := json.Unmarshal([]byte(`"hello"`), &hello); err != nil {
+	if err := opt.JSONUnmarshal([]byte(`"hello"`), &hello); err != nil {
 		t.Error(err)
 	}
 	checkState(t, hello, StateSet)
@@ -317,7 +318,7 @@ func checkState[T any](t *testing.T, val Val[T], want state) {
 func checkJSON[T any](t *testing.T, v Val[T], s string) {
 	t.Helper()
 
-	b, err := json.Marshal(v)
+	b, err := opt.JSONMarshal(v)
 	if err != nil {
 		t.Error(err)
 	}

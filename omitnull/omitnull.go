@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"database/sql/driver"
 	"encoding"
-	"encoding/json"
 	"reflect"
 
 	"github.com/aarondl/opt"
@@ -250,7 +249,7 @@ func (v *Val[T]) UnmarshalJSON(data []byte) error {
 		v.state = StateNull
 		return nil
 	default:
-		err := json.Unmarshal(data, &v.value)
+		err := opt.JSONUnmarshal(data, &v.value)
 		if err != nil {
 			return err
 		}
@@ -273,7 +272,7 @@ func (v *Val[T]) UnmarshalJSON(data []byte) error {
 func (v Val[T]) MarshalJSON() ([]byte, error) {
 	switch v.state {
 	case StateSet:
-		return json.Marshal(v.value)
+		return opt.JSONMarshal(v.value)
 	default:
 		return globaldata.JSONNull, nil
 	}

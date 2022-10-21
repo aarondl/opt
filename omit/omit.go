@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"database/sql/driver"
 	"encoding"
-	"encoding/json"
 	"errors"
 	"reflect"
 
@@ -172,7 +171,7 @@ func (v *Val[T]) UnmarshalJSON(data []byte) error {
 	case bytes.Equal(data, globaldata.JSONNull):
 		return errors.New("cannot unmarshal 'null' value into omit value")
 	default:
-		err := json.Unmarshal(data, &v.value)
+		err := opt.JSONUnmarshal(data, &v.value)
 		if err != nil {
 			return err
 		}
@@ -196,7 +195,7 @@ func (v Val[T]) MarshalJSON() ([]byte, error) {
 	switch v.state {
 	case StateSet:
 
-		return json.Marshal(v.value)
+		return opt.JSONMarshal(v.value)
 	default:
 		return globaldata.JSONNull, nil
 	}
