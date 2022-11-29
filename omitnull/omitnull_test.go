@@ -54,12 +54,24 @@ func TestConversions(t *testing.T) {
 	if o.MustGet() != 5 {
 		t.Error("wrong value")
 	}
+	o, ok := val.GetOmit()
+	if !ok || !o.IsSet() {
+		t.Error("should be set")
+	}
 	val.Unset()
 	o = val.MustGetOmit()
 	if !o.IsUnset() {
 		t.Error("should be unset")
 	}
-
+	o, ok = val.GetOmit()
+	if !ok || !o.IsUnset() {
+		t.Error("should be unset")
+	}
+	val.SetPtr(nil)
+	o, ok = val.GetOmit()
+	if ok {
+		t.Error("should be nil")
+	}
 	val = FromNull(null.Val[int]{})
 	checkState(t, val, StateNull)
 	val = FromNull(null.From(5))
@@ -74,10 +86,32 @@ func TestConversions(t *testing.T) {
 	if n.MustGet() != 5 {
 		t.Error("wrong value")
 	}
+	n, ok = val.GetNull()
+	if !ok || !n.IsSet() || n.MustGet() != 5 {
+		t.Error("should be set")
+	}
 	val.Null()
 	n = val.MustGetNull()
 	if !n.IsNull() {
 		t.Error("should be null")
+	}
+	n, ok = val.GetNull()
+	if !ok || !n.IsNull() {
+		t.Error("should be null")
+	}
+	val.Unset()
+	o = val.MustGetOmit()
+	if !o.IsUnset() {
+		t.Error("should be unset")
+	}
+	o, ok = val.GetOmit()
+	if !ok || !o.IsUnset() {
+		t.Error("should be unset")
+	}
+	val.SetPtr(nil)
+	o, ok = val.GetOmit()
+	if ok {
+		t.Error("should be nil")
 	}
 }
 
