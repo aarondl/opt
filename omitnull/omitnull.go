@@ -109,6 +109,30 @@ func (v Val[T]) GetOrZero() T {
 	return v.value
 }
 
+// GetNull retrieves the value as a nullable value.
+func (v Val[T]) GetNull() (null.Val[T], bool) {
+	switch v.state {
+	case StateSet:
+		return null.From(v.value), true
+	case StateNull:
+		return null.Val[T]{}, true
+	default:
+		return null.Val[T]{}, false
+	}
+}
+
+// GetOmit retrieves the value as a omittable value.
+func (v Val[T]) GetOmit() (omit.Val[T], bool) {
+	switch v.state {
+	case StateSet:
+		return omit.From(v.value), true
+	case StateUnset:
+		return omit.Val[T]{}, true
+	default:
+		return omit.Val[T]{}, false
+	}
+}
+
 // MustGet retrieves the value or panics if it's null or omitted
 func (v Val[T]) MustGet() T {
 	val, ok := v.Get()
@@ -341,12 +365,12 @@ func (v *Val[T]) Scan(value any) error {
 // implements the driver.Valuer it will call that (when not unset/null).
 // Go primitive types will be converted where possible.
 //
-//   int64
-//   float64
-//   bool
-//   []byte
-//   string
-//   time.Time
+//	int64
+//	float64
+//	bool
+//	[]byte
+//	string
+//	time.Time
 func (v Val[T]) Value() (driver.Value, error) {
 	if v.state != StateSet {
 		return nil, nil
