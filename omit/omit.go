@@ -304,11 +304,5 @@ func (v Val[T]) Value() (driver.Value, error) {
 		return nil, nil
 	}
 
-	refVal := reflect.ValueOf(v.value)
-	if refVal.Type().Implements(globaldata.DriverValuerIntf) {
-		valuer := refVal.Interface().(driver.Valuer)
-		return valuer.Value()
-	}
-
-	return v.value, nil
+	return opt.ToDriverValue(v.value)
 }
