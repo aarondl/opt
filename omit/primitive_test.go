@@ -22,7 +22,7 @@ func TestPrimitives(t *testing.T) {
 		}
 		if b, err := val.Value(); err != nil {
 			t.Error(err)
-		} else if b.(int8) != 5 {
+		} else if b.(int64) != 5 {
 			t.Error("output was wrong:", b)
 		}
 
@@ -62,7 +62,7 @@ func TestPrimitives(t *testing.T) {
 		}
 		if b, err := val.Value(); err != nil {
 			t.Error(err)
-		} else if b.(int16) != 5 {
+		} else if b.(int64) != 5 {
 			t.Error("output was wrong:", b)
 		}
 
@@ -102,7 +102,7 @@ func TestPrimitives(t *testing.T) {
 		}
 		if b, err := val.Value(); err != nil {
 			t.Error(err)
-		} else if b.(int32) != 5 {
+		} else if b.(int64) != 5 {
 			t.Error("output was wrong:", b)
 		}
 
@@ -182,7 +182,7 @@ func TestPrimitives(t *testing.T) {
 		}
 		if b, err := val.Value(); err != nil {
 			t.Error(err)
-		} else if b.(int) != 5 {
+		} else if b.(int64) != 5 {
 			t.Error("output was wrong:", b)
 		}
 
@@ -222,7 +222,7 @@ func TestPrimitives(t *testing.T) {
 		}
 		if b, err := val.Value(); err != nil {
 			t.Error(err)
-		} else if b.(uint8) != 5 {
+		} else if b.(int64) != 5 {
 			t.Error("output was wrong:", b)
 		}
 
@@ -262,7 +262,7 @@ func TestPrimitives(t *testing.T) {
 		}
 		if b, err := val.Value(); err != nil {
 			t.Error(err)
-		} else if b.(uint16) != 5 {
+		} else if b.(int64) != 5 {
 			t.Error("output was wrong:", b)
 		}
 
@@ -302,7 +302,7 @@ func TestPrimitives(t *testing.T) {
 		}
 		if b, err := val.Value(); err != nil {
 			t.Error(err)
-		} else if b.(uint32) != 5 {
+		} else if b.(int64) != 5 {
 			t.Error("output was wrong:", b)
 		}
 
@@ -342,7 +342,7 @@ func TestPrimitives(t *testing.T) {
 		}
 		if b, err := val.Value(); err != nil {
 			t.Error(err)
-		} else if b.(uint64) != 5 {
+		} else if b.(int64) != 5 {
 			t.Error("output was wrong:", b)
 		}
 
@@ -382,7 +382,7 @@ func TestPrimitives(t *testing.T) {
 		}
 		if b, err := val.Value(); err != nil {
 			t.Error(err)
-		} else if b.(uint) != 5 {
+		} else if b.(int64) != 5 {
 			t.Error("output was wrong:", b)
 		}
 
