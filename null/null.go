@@ -282,5 +282,5 @@ func (v Val[T]) Value() (driver.Value, error) {
 		return nil, nil
 	}
 
-	return opt.ToDriverValue(reflect.ValueOf(v.value))
+	return opt.ToDriverValue(v.value)
 }

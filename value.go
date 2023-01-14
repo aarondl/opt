@@ -9,7 +9,8 @@ import (
 
 // ToDriverValue generates the appropriate driver.Value
 // from a given value
-func ToDriverValue(refVal reflect.Value) (driver.Value, error) {
+func ToDriverValue(val any) (driver.Value, error) {
+	refVal := reflect.ValueOf(val)
 	if refVal.Type().Implements(globaldata.DriverValuerIntf) {
 		valuer := refVal.Interface().(driver.Valuer)
 		return valuer.Value()
@@ -32,5 +33,5 @@ func ToDriverValue(refVal reflect.Value) (driver.Value, error) {
 		return refVal.String(), nil
 	}
 
-	return refVal.Interface(), nil
+	return val, nil
 }
