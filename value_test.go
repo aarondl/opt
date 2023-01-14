@@ -48,7 +48,7 @@ func doTest[E any, T any](t *testing.T, v T) {
 	t.Helper()
 
 	t.Run(fmt.Sprintf("%T", v), func(t *testing.T) {
-		drVal, err := ToDriverValue(v)
+		drVal, err := ToDriverValue(reflect.ValueOf(v))
 		if err != nil {
 			t.Fatalf("error getting driver.Value: %v", err)
 		}
