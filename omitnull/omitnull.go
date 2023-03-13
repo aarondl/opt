@@ -167,6 +167,29 @@ func (v Val[T]) MustGetOmit() omit.Val[T] {
 	}
 }
 
+// Or returns v or other depending on their states. In general
+// set > null > unset and therefore the one with the state highest in that
+// area will win out.
+//
+//	v     | other | result
+//	------------- | -------
+//	set   | _     | v
+//	null  | set   | other
+//	null  | _     | v
+//	unset | set   | other
+//	unset | null  | other
+//	unset | unset | v
+func (v Val[T]) Or(other Val[T]) Val[T] {
+	switch {
+	case v.state == StateNull && other.state == StateSet:
+		return other
+	case v.state == StateUnset && (other.state == StateSet || other.state == StateNull):
+		return other
+	default:
+		return v
+	}
+}
+
 // Map transforms the value inside if it is set, else it returns a value of the
 // same state.
 //

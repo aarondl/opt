@@ -109,6 +109,24 @@ func (v Val[T]) MustGet() T {
 	return val
 }
 
+// Or returns v or other depending on their states. In general
+// set > null > unset and therefore the one with the state highest in that
+// area will win out.
+//
+//	v     | other | result
+//	------------- | -------
+//	set   | _     | v
+//	null  | set   | other
+//	null  | null  | v
+func (v Val[T]) Or(other Val[T]) Val[T] {
+	switch {
+	case v.state == StateNull && other.state == StateSet:
+		return other
+	default:
+		return v
+	}
+}
+
 // Map transforms the value inside if it is set, else it returns a value of the
 // same state.
 //
@@ -271,12 +289,12 @@ func (v *Val[T]) Scan(value any) error {
 // implements the driver.Valuer it will call that (when not null).
 // Go primitive types will be converted where possible.
 //
-//   int64
-//   float64
-//   bool
-//   []byte
-//   string
-//   time.Time
+//	int64
+//	float64
+//	bool
+//	[]byte
+//	string
+//	time.Time
 func (v Val[T]) Value() (driver.Value, error) {
 	if v.state != StateSet {
 		return nil, nil

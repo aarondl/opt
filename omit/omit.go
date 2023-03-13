@@ -109,6 +109,24 @@ func (v Val[T]) MustGet() T {
 	return val
 }
 
+// Or returns v or other depending on their states. In general
+// set > unset and therefore the one with the state highest in that
+// area will win out.
+//
+//	v     | other | result
+//	------------- | -------
+//	set   | _     | v
+//	unset | set   | other
+//	unset | unset | v
+func (v Val[T]) Or(other Val[T]) Val[T] {
+	switch {
+	case v.state == StateUnset && other.state == StateSet:
+		return other
+	default:
+		return v
+	}
+}
+
 // Map transforms the value inside if it is set, else it returns a value of the
 // same state.
 //
@@ -293,12 +311,12 @@ func (v *Val[T]) Scan(value any) error {
 // Because sql doesn't have an analog to unset it will marshal as null in these
 // cases.
 //
-//   int64
-//   float64
-//   bool
-//   []byte
-//   string
-//   time.Time
+//	int64
+//	float64
+//	bool
+//	[]byte
+//	string
+//	time.Time
 func (v Val[T]) Value() (driver.Value, error) {
 	if v.state != StateSet {
 		return nil, nil

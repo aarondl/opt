@@ -78,6 +78,28 @@ func TestGet(t *testing.T) {
 	_ = val.MustGet()
 }
 
+func TestOr(t *testing.T) {
+	t.Parallel()
+
+	var set, unset Val[int]
+	set.Set(5)
+	unset.Unset()
+
+	if set.Or(From(6)).MustGet() != 5 {
+		t.Error("it should have returned 5")
+	}
+	if set.Or(unset).MustGet() != 5 {
+		t.Error("it should have returned 5")
+	}
+
+	if unset.Or(set).MustGet() != 5 {
+		t.Error("it should have returned 5")
+	}
+	if !unset.Or(unset).IsUnset() {
+		t.Error("it should have returned unset")
+	}
+}
+
 func TestMap(t *testing.T) {
 	t.Parallel()
 

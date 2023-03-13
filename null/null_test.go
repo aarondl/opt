@@ -84,6 +84,28 @@ func TestGet(t *testing.T) {
 	_ = val.MustGet()
 }
 
+func TestOr(t *testing.T) {
+	t.Parallel()
+
+	var set, null Val[int]
+	set.Set(5)
+	null.Null()
+
+	if set.Or(From(6)).MustGet() != 5 {
+		t.Error("it should have returned 5")
+	}
+	if set.Or(null).MustGet() != 5 {
+		t.Error("it should have returned 5")
+	}
+
+	if null.Or(set).MustGet() != 5 {
+		t.Error("it should have returned 5")
+	}
+	if !null.Or(null).IsNull() {
+		t.Error("it should have returned null")
+	}
+}
+
 func TestMap(t *testing.T) {
 	t.Parallel()
 
