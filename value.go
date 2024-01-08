@@ -2,6 +2,7 @@ package opt
 
 import (
 	"database/sql/driver"
+	"encoding"
 	"reflect"
 
 	"github.com/aarondl/opt/internal/globaldata"
@@ -14,6 +15,23 @@ func ToDriverValue(val any) (driver.Value, error) {
 	if refVal.Type().Implements(globaldata.DriverValuerIntf) {
 		valuer := refVal.Interface().(driver.Valuer)
 		return valuer.Value()
+	}
+
+	// If it is of time.Time type, return it as is.
+	if refVal.Type() == globaldata.TimeType {
+		return val, nil
+	}
+
+	// If it implements encoding.TextMarshaler, use that.
+	if refVal.Type().Implements(globaldata.EncodingTextMarshalerIntf) {
+		marshaler := refVal.Interface().(encoding.TextMarshaler)
+		return marshaler.MarshalText()
+	}
+
+	// If it implements encoding.BinaryMarshaler, use that.
+	if refVal.Type().Implements(globaldata.EncodingBinaryMarshalerIntf) {
+		marshaler := refVal.Interface().(encoding.BinaryMarshaler)
+		return marshaler.MarshalBinary()
 	}
 
 	switch refVal.Kind() {
