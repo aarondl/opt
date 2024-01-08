@@ -17,23 +17,6 @@ func ToDriverValue(val any) (driver.Value, error) {
 		return valuer.Value()
 	}
 
-	switch refVal.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return refVal.Int(), nil
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return int64(refVal.Uint()), nil
-	case reflect.Float32, reflect.Float64:
-		return refVal.Float(), nil
-	case reflect.Bool:
-		return refVal.Bool(), nil
-	case reflect.Slice:
-		if refVal.Type().Elem().Kind() == reflect.Uint8 {
-			return refVal.Bytes(), nil
-		}
-	case reflect.String:
-		return refVal.String(), nil
-	}
-
 	// If it is of time.Time type, return it as is.
 	if refVal.Type() == globaldata.TimeType {
 		return val, nil
@@ -49,6 +32,23 @@ func ToDriverValue(val any) (driver.Value, error) {
 	if refVal.Type().Implements(globaldata.EncodingBinaryMarshalerIntf) {
 		marshaler := refVal.Interface().(encoding.BinaryMarshaler)
 		return marshaler.MarshalBinary()
+	}
+
+	switch refVal.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return refVal.Int(), nil
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return int64(refVal.Uint()), nil
+	case reflect.Float32, reflect.Float64:
+		return refVal.Float(), nil
+	case reflect.Bool:
+		return refVal.Bool(), nil
+	case reflect.Slice:
+		if refVal.Type().Elem().Kind() == reflect.Uint8 {
+			return refVal.Bytes(), nil
+		}
+	case reflect.String:
+		return refVal.String(), nil
 	}
 
 	return val, nil
