@@ -401,3 +401,17 @@ func (v Val[T]) Value() (driver.Value, error) {
 
 	return opt.ToDriverValue(v.value)
 }
+
+// Equal compares two nullable values and returns true if they are equal.
+func Equal[T comparable](a, b Val[T]) bool {
+	if a.state != b.state {
+		return false
+	}
+
+	// states are equal, thus if set, they could have different values
+	if a.state != StateSet {
+		return true
+	}
+
+	return a.value == b.value
+}
