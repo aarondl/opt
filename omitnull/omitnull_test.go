@@ -466,6 +466,46 @@ func TestStateStringer(t *testing.T) {
 	_ = state(99).String()
 }
 
+func TestEqual(t *testing.T) {
+	t.Parallel()
+
+	a := Val[string]{}
+	b := Val[string]{}
+	if !Equal(a, b) {
+		t.Error("should be equal")
+	}
+
+	a.Set("hello")
+	if Equal(a, b) {
+		t.Error("should not be equal")
+	}
+
+	b.Set("hello")
+	if !Equal(a, b) {
+		t.Error("should be equal")
+	}
+
+	b.Set("hi")
+	if Equal(a, b) {
+		t.Error("should not be equal")
+	}
+
+	a.Null()
+	if Equal(a, b) {
+		t.Error("should not be equal")
+	}
+
+	b.Null()
+	if !Equal(a, b) {
+		t.Error("should be equal")
+	}
+
+	a.Unset()
+	if Equal(a, b) {
+		t.Error("should not be equal")
+	}
+}
+
 func checkState[T any](t *testing.T, val Val[T], want state) {
 	t.Helper()
 
