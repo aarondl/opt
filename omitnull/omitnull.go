@@ -243,8 +243,13 @@ func (v *Val[T]) SetPtr(val *T) {
 	v.state = StateSet
 }
 
-// IsSet returns true if v contains a non-null value
+// IsSet returns true if v contains a concrete value, or a null value
 func (v Val[T]) IsSet() bool {
+	return v.state == StateSet || v.state == StateNull
+}
+
+// IsSetNonNull returns true if v contains a concrete, non-null value.
+func (v Val[T]) IsSetNonNull() bool {
 	return v.state == StateSet
 }
 
