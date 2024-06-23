@@ -17,7 +17,7 @@ func TestPrimitives(t *testing.T) {
 		}
 		if b, err := val.MarshalText(); err != nil {
 			t.Error(err)
-		} else if string(b) != `5` {
+		} else if string(b) != `15` {
 			t.Error("output was wrong:", string(b))
 		}
 		if b, err := val.Value(); err != nil {
@@ -33,7 +33,7 @@ func TestPrimitives(t *testing.T) {
 		} else if v != 6 {
 			t.Error("value wrong:", v)
 		}
-		if err := val.UnmarshalText([]byte(`7`)); err != nil {
+		if err := val.UnmarshalText([]byte(`17`)); err != nil {
 			t.Error(err)
 		} else if v, ok := val.Get(); !ok {
 			t.Error("should not be null!")
@@ -57,7 +57,7 @@ func TestPrimitives(t *testing.T) {
 		}
 		if b, err := val.MarshalText(); err != nil {
 			t.Error(err)
-		} else if string(b) != `5` {
+		} else if string(b) != `15` {
 			t.Error("output was wrong:", string(b))
 		}
 		if b, err := val.Value(); err != nil {
@@ -73,7 +73,7 @@ func TestPrimitives(t *testing.T) {
 		} else if v != 6 {
 			t.Error("value wrong:", v)
 		}
-		if err := val.UnmarshalText([]byte(`7`)); err != nil {
+		if err := val.UnmarshalText([]byte(`17`)); err != nil {
 			t.Error(err)
 		} else if v, ok := val.Get(); !ok {
 			t.Error("should not be null!")
@@ -97,7 +97,7 @@ func TestPrimitives(t *testing.T) {
 		}
 		if b, err := val.MarshalText(); err != nil {
 			t.Error(err)
-		} else if string(b) != `5` {
+		} else if string(b) != `15` {
 			t.Error("output was wrong:", string(b))
 		}
 		if b, err := val.Value(); err != nil {
@@ -113,7 +113,7 @@ func TestPrimitives(t *testing.T) {
 		} else if v != 6 {
 			t.Error("value wrong:", v)
 		}
-		if err := val.UnmarshalText([]byte(`7`)); err != nil {
+		if err := val.UnmarshalText([]byte(`17`)); err != nil {
 			t.Error(err)
 		} else if v, ok := val.Get(); !ok {
 			t.Error("should not be null!")
@@ -137,7 +137,7 @@ func TestPrimitives(t *testing.T) {
 		}
 		if b, err := val.MarshalText(); err != nil {
 			t.Error(err)
-		} else if string(b) != `5` {
+		} else if string(b) != `15` {
 			t.Error("output was wrong:", string(b))
 		}
 		if b, err := val.Value(); err != nil {
@@ -153,7 +153,7 @@ func TestPrimitives(t *testing.T) {
 		} else if v != 6 {
 			t.Error("value wrong:", v)
 		}
-		if err := val.UnmarshalText([]byte(`7`)); err != nil {
+		if err := val.UnmarshalText([]byte(`17`)); err != nil {
 			t.Error(err)
 		} else if v, ok := val.Get(); !ok {
 			t.Error("should not be null!")
@@ -177,7 +177,7 @@ func TestPrimitives(t *testing.T) {
 		}
 		if b, err := val.MarshalText(); err != nil {
 			t.Error(err)
-		} else if string(b) != `5` {
+		} else if string(b) != `15` {
 			t.Error("output was wrong:", string(b))
 		}
 		if b, err := val.Value(); err != nil {
@@ -193,7 +193,7 @@ func TestPrimitives(t *testing.T) {
 		} else if v != 6 {
 			t.Error("value wrong:", v)
 		}
-		if err := val.UnmarshalText([]byte(`7`)); err != nil {
+		if err := val.UnmarshalText([]byte(`17`)); err != nil {
 			t.Error(err)
 		} else if v, ok := val.Get(); !ok {
 			t.Error("should not be null!")
@@ -217,7 +217,7 @@ func TestPrimitives(t *testing.T) {
 		}
 		if b, err := val.MarshalText(); err != nil {
 			t.Error(err)
-		} else if string(b) != `5` {
+		} else if string(b) != `15` {
 			t.Error("output was wrong:", string(b))
 		}
 		if b, err := val.Value(); err != nil {
@@ -233,7 +233,7 @@ func TestPrimitives(t *testing.T) {
 		} else if v != 6 {
 			t.Error("value wrong:", v)
 		}
-		if err := val.UnmarshalText([]byte(`7`)); err != nil {
+		if err := val.UnmarshalText([]byte(`17`)); err != nil {
 			t.Error(err)
 		} else if v, ok := val.Get(); !ok {
 			t.Error("should not be null!")
@@ -257,7 +257,7 @@ func TestPrimitives(t *testing.T) {
 		}
 		if b, err := val.MarshalText(); err != nil {
 			t.Error(err)
-		} else if string(b) != `5` {
+		} else if string(b) != `15` {
 			t.Error("output was wrong:", string(b))
 		}
 		if b, err := val.Value(); err != nil {
@@ -273,7 +273,7 @@ func TestPrimitives(t *testing.T) {
 		} else if v != 6 {
 			t.Error("value wrong:", v)
 		}
-		if err := val.UnmarshalText([]byte(`7`)); err != nil {
+		if err := val.UnmarshalText([]byte(`17`)); err != nil {
 			t.Error(err)
 		} else if v, ok := val.Get(); !ok {
 			t.Error("should not be null!")
@@ -297,7 +297,7 @@ func TestPrimitives(t *testing.T) {
 		}
 		if b, err := val.MarshalText(); err != nil {
 			t.Error(err)
-		} else if string(b) != `5` {
+		} else if string(b) != `15` {
 			t.Error("output was wrong:", string(b))
 		}
 		if b, err := val.Value(); err != nil {
@@ -313,7 +313,7 @@ func TestPrimitives(t *testing.T) {
 		} else if v != 6 {
 			t.Error("value wrong:", v)
 		}
-		if err := val.UnmarshalText([]byte(`7`)); err != nil {
+		if err := val.UnmarshalText([]byte(`17`)); err != nil {
 			t.Error(err)
 		} else if v, ok := val.Get(); !ok {
 			t.Error("should not be null!")
@@ -337,7 +337,7 @@ func TestPrimitives(t *testing.T) {
 		}
 		if b, err := val.MarshalText(); err != nil {
 			t.Error(err)
-		} else if string(b) != `5` {
+		} else if string(b) != `15` {
 			t.Error("output was wrong:", string(b))
 		}
 		if b, err := val.Value(); err != nil {
@@ -353,7 +353,7 @@ func TestPrimitives(t *testing.T) {
 		} else if v != 6 {
 			t.Error("value wrong:", v)
 		}
-		if err := val.UnmarshalText([]byte(`7`)); err != nil {
+		if err := val.UnmarshalText([]byte(`17`)); err != nil {
 			t.Error(err)
 		} else if v, ok := val.Get(); !ok {
 			t.Error("should not be null!")
@@ -377,7 +377,7 @@ func TestPrimitives(t *testing.T) {
 		}
 		if b, err := val.MarshalText(); err != nil {
 			t.Error(err)
-		} else if string(b) != `5` {
+		} else if string(b) != `15` {
 			t.Error("output was wrong:", string(b))
 		}
 		if b, err := val.Value(); err != nil {
@@ -393,7 +393,7 @@ func TestPrimitives(t *testing.T) {
 		} else if v != 6 {
 			t.Error("value wrong:", v)
 		}
-		if err := val.UnmarshalText([]byte(`7`)); err != nil {
+		if err := val.UnmarshalText([]byte(`17`)); err != nil {
 			t.Error(err)
 		} else if v, ok := val.Get(); !ok {
 			t.Error("should not be null!")
@@ -417,7 +417,7 @@ func TestPrimitives(t *testing.T) {
 		}
 		if b, err := val.MarshalText(); err != nil {
 			t.Error(err)
-		} else if string(b) != `hello` {
+		} else if string(b) != `1hello` {
 			t.Error("output was wrong:", string(b))
 		}
 		if b, err := val.Value(); err != nil {
@@ -433,7 +433,7 @@ func TestPrimitives(t *testing.T) {
 		} else if v != "a" {
 			t.Error("value wrong:", v)
 		}
-		if err := val.UnmarshalText([]byte(`b`)); err != nil {
+		if err := val.UnmarshalText([]byte(`1b`)); err != nil {
 			t.Error(err)
 		} else if v, ok := val.Get(); !ok {
 			t.Error("should not be null!")
@@ -461,7 +461,7 @@ func TestPrimitives(t *testing.T) {
 		}
 		if b, err := val.MarshalText(); err != nil {
 			t.Error(err)
-		} else if string(b) != `hello` {
+		} else if string(b) != `1hello` {
 			t.Error("output was wrong:", string(b))
 		}
 		if b, err := val.Value(); err != nil {
@@ -476,7 +476,7 @@ func TestPrimitives(t *testing.T) {
 		} else if !bytes.Equal(v, []byte{'a'}) {
 			t.Error("value wrong:", v)
 		}
-		if err := val.UnmarshalText([]byte(`b`)); err != nil {
+		if err := val.UnmarshalText([]byte(`1b`)); err != nil {
 			t.Error(err)
 		} else if v, ok := val.Get(); !ok {
 			t.Error("should not be null!")
@@ -504,7 +504,7 @@ func TestPrimitives(t *testing.T) {
 		}
 		if b, err := val.MarshalText(); err != nil {
 			t.Error(err)
-		} else if string(b) != `true` {
+		} else if string(b) != `1true` {
 			t.Error("output was wrong:", string(b))
 		}
 		if b, err := val.Value(); err != nil {
@@ -519,7 +519,7 @@ func TestPrimitives(t *testing.T) {
 		} else if v != true {
 			t.Error("value wrong:", v)
 		}
-		if err := val.UnmarshalText([]byte(`false`)); err != nil {
+		if err := val.UnmarshalText([]byte(`1false`)); err != nil {
 			t.Error(err)
 		} else if v, ok := val.Get(); !ok {
 			t.Error("should not be null!")

@@ -334,8 +334,8 @@ func TestMarshalText(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if string(b) != "hello" {
-		t.Error("expected hello")
+	if string(b) != "1hello" {
+		t.Error("expected 1hello")
 	}
 
 	hello.Null()
@@ -343,14 +343,14 @@ func TestMarshalText(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if string(b) != "" {
-		t.Error("expected hello")
+	if string(b) != "0" {
+		t.Error("expected a single 0")
 	}
 
 	marshaller := From(net.IPv4(1, 1, 1, 1))
 	if b, err := marshaller.MarshalText(); err != nil {
 		t.Error(err)
-	} else if !bytes.Equal(b, []byte("1.1.1.1")) {
+	} else if !bytes.Equal(b, []byte("11.1.1.1")) {
 		t.Error("wrong value")
 	}
 }
@@ -364,7 +364,12 @@ func TestUnmarshalText(t *testing.T) {
 	}
 	checkState(t, val, StateUnset)
 
-	if err := val.UnmarshalText([]byte("hello")); err != nil {
+	if err := val.UnmarshalText([]byte("0")); err != nil {
+		t.Error(err)
+	}
+	checkState(t, val, StateNull)
+
+	if err := val.UnmarshalText([]byte("1hello")); err != nil {
 		t.Error(err)
 	}
 	checkState(t, val, StateSet)
@@ -378,7 +383,7 @@ func TestUnmarshalText(t *testing.T) {
 	}
 	checkState(t, unmarshaller, StateUnset)
 
-	if err := unmarshaller.UnmarshalText([]byte("1.1.1.1")); err != nil {
+	if err := unmarshaller.UnmarshalText([]byte("11.1.1.1")); err != nil {
 		t.Error(err)
 	}
 	checkState(t, unmarshaller, StateSet)
@@ -404,7 +409,7 @@ func TestMarshalBinary(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if bytes.Equal(b, []byte{0}) {
+	if !bytes.Equal(b, []byte{0}) {
 		t.Error("expected a null byte")
 	}
 

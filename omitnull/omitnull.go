@@ -326,23 +326,39 @@ func (v Val[T]) MarshalJSON() ([]byte, error) {
 	}
 }
 
-// MarshalText implements encoding.TextMarshaler.
+// MarshalText implements encoding.TextMarshaler. If the value
+// is omitted it will return nil (empty string), if the value
+// is null it will return '0' as a representation, and if the
+// value is set it will prepend '1' to the value's text representation.
+//
+// That's also to say that there is no compatibility with the outside
+// world. A value that is Unmarshal'd by this package must have been
+// produced by this package to encode the text properly.
 func (v Val[T]) MarshalText() ([]byte, error) {
-	if v.state != StateSet {
+	switch v.state {
+	case StateUnset:
 		return nil, nil
+	case StateNull:
+		return []byte{'0'}, nil
 	}
+
+	out := []byte{'1'}
 
 	refVal := reflect.ValueOf(v.value)
 	if refVal.Type().Implements(globaldata.EncodingTextMarshalerIntf) {
 		valuer := refVal.Interface().(encoding.TextMarshaler)
-		return valuer.MarshalText()
+		b, err := valuer.MarshalText()
+		if err != nil {
+			return nil, err
+		}
+		return append(out, b...), nil
 	}
 
 	var text string
 	if err := opt.ConvertAssign(&text, v.value); err != nil {
 		return nil, err
 	}
-	return []byte(text), nil
+	return append(out, text...), nil
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler.
@@ -352,7 +368,16 @@ func (v *Val[T]) UnmarshalText(text []byte) error {
 		v.value = zero
 		v.state = StateUnset
 		return nil
+	} else if text[0] == '0' {
+		var zero T
+		v.value = zero
+		v.state = StateNull
+		return nil
+	} else if text[0] != '1' {
+		return errors.New("invalid text format for omitnull.Val, expected [], [0, ...], or [1, ...]")
 	}
+
+	text = text[1:]
 
 	refVal := reflect.ValueOf(&v.value)
 	if refVal.Type().Implements(globaldata.EncodingTextUnmarshalerIntf) {
@@ -381,9 +406,10 @@ func (v *Val[T]) UnmarshalText(text []byte) error {
 // Omitnull will add a prepend a single byte to the value's binary
 // encoding track the state (0 for null, 1 for set) when it is not omitted.
 func (v Val[T]) MarshalBinary() ([]byte, error) {
-	if v.state != StateSet {
+	switch v.state {
+	case StateUnset:
 		return nil, nil
-	} else if v.state == StateNull {
+	case StateNull:
 		return []byte{0}, nil
 	}
 

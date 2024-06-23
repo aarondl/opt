@@ -227,6 +227,21 @@ func (v Val[T]) MarshalJSON() ([]byte, error) {
 }
 
 // MarshalText implements encoding.TextMarshaler.
+//
+// This package emits an empty string for null values
+// as its way of compactly storing the state. This probably isn't
+// canonically useful but it's hard to agree on a better way
+// because various implementations of serialization may use a
+// different representation of null (such as nil).
+//
+// Further to that it would prevent us from just encoding the string
+// "null" since null.From("null") would be both valid and useful.
+//
+// It may in the future be more useful to rely on a []byte("null")
+// as a sentinel value, but for now this package will assume that
+// any value being consumed by null.UnmarshalText() has been
+// created with null.MarshalText() and it therefore strives to make
+// no gesture of compatibility with non-null.Val serialized types.
 func (v Val[T]) MarshalText() ([]byte, error) {
 	if v.state != StateSet {
 		return nil, nil
@@ -246,6 +261,10 @@ func (v Val[T]) MarshalText() ([]byte, error) {
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler.
+//
+// It specifically does not understand the word "null" to mean
+// anything special, as that would preclude us from encoding the
+// string "null" as a non-null string value.
 func (v *Val[T]) UnmarshalText(text []byte) error {
 	if len(text) == 0 {
 		var zero T
