@@ -294,6 +294,72 @@ func (v *Val[T]) UnmarshalText(text []byte) error {
 	return nil
 }
 
+// MarshalBinary tries to encode the value in binary. If it finds
+// type that implements encoding.BinaryMarshaler it will use that,
+// it will fallback to encoding.TextMarshaler if that is implemented,
+// and failing that it will attempt to do some reflect to convert between
+// the types to hit common cases like Go primitives.
+func (v Val[T]) MarshalBinary() ([]byte, error) {
+	if v.state != StateSet {
+		return nil, nil
+	}
+
+	refVal := reflect.ValueOf(v.value)
+	if refVal.Type().Implements(globaldata.EncodingBinaryMarshalerIntf) {
+		valuer := refVal.Interface().(encoding.BinaryMarshaler)
+		return valuer.MarshalBinary()
+	}
+
+	if refVal.Type().Implements(globaldata.EncodingTextMarshalerIntf) {
+		valuer := refVal.Interface().(encoding.TextMarshaler)
+		return valuer.MarshalText()
+	}
+
+	var buf []byte
+	if err := opt.ConvertAssign(&buf, v.value); err != nil {
+		return nil, err
+	}
+
+	return buf, nil
+}
+
+// UnmarshalBinary tries to reverse the value MarshalBinary operation.
+// See documentation there for details about supported types.
+func (v *Val[T]) UnmarshalBinary(b []byte) error {
+	if len(b) == 0 {
+		var zero T
+		v.value = zero
+		v.state = StateUnset
+		return nil
+	}
+
+	refVal := reflect.ValueOf(&v.value)
+	if refVal.Type().Implements(globaldata.EncodingBinaryUnmarshalerIntf) {
+		valuer := refVal.Interface().(encoding.BinaryUnmarshaler)
+		if err := valuer.UnmarshalBinary(b); err != nil {
+			return err
+		}
+		v.state = StateSet
+		return nil
+	}
+
+	if refVal.Type().Implements(globaldata.EncodingTextUnmarshalerIntf) {
+		valuer := refVal.Interface().(encoding.TextUnmarshaler)
+		if err := valuer.UnmarshalText(b); err != nil {
+			return err
+		}
+		v.state = StateSet
+		return nil
+	}
+
+	if err := opt.ConvertAssign(&v.value, b); err != nil {
+		return err
+	}
+
+	v.state = StateSet
+	return nil
+}
+
 // Scan implements the sql.Scanner interface. If the wrapped type implements
 // sql.Scanner then it will call that.
 func (v *Val[T]) Scan(value any) error {

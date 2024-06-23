@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"database/sql/driver"
 	"encoding"
+	"errors"
 	"reflect"
 
 	"github.com/aarondl/opt"
@@ -364,6 +365,96 @@ func (v *Val[T]) UnmarshalText(text []byte) error {
 	}
 
 	if err := opt.ConvertAssign(&v.value, string(text)); err != nil {
+		return err
+	}
+
+	v.state = StateSet
+	return nil
+}
+
+// MarshalBinary tries to encode the value in binary. If it finds
+// type that implements encoding.BinaryMarshaler it will use that,
+// it will fallback to encoding.TextMarshaler if that is implemented,
+// and failing that it will attempt to do some reflect to convert between
+// the types to hit common cases like Go primitives.
+//
+// Omitnull will add a prepend a single byte to the value's binary
+// encoding track the state (0 for null, 1 for set) when it is not omitted.
+func (v Val[T]) MarshalBinary() ([]byte, error) {
+	if v.state != StateSet {
+		return nil, nil
+	} else if v.state == StateNull {
+		return []byte{0}, nil
+	}
+
+	out := []byte{1}
+
+	refVal := reflect.ValueOf(v.value)
+	if refVal.Type().Implements(globaldata.EncodingBinaryMarshalerIntf) {
+		valuer := refVal.Interface().(encoding.BinaryMarshaler)
+		b, err := valuer.MarshalBinary()
+		if err != nil {
+			return nil, err
+		}
+		return append(out, b...), nil
+	}
+
+	if refVal.Type().Implements(globaldata.EncodingTextMarshalerIntf) {
+		valuer := refVal.Interface().(encoding.TextMarshaler)
+		b, err := valuer.MarshalText()
+		if err != nil {
+			return nil, err
+		}
+		return append(out, b...), nil
+	}
+
+	var buf []byte
+	if err := opt.ConvertAssign(&buf, v.value); err != nil {
+		return nil, err
+	}
+
+	return append(out, buf...), nil
+}
+
+// UnmarshalBinary tries to reverse the value MarshalBinary operation.
+// See documentation there for details about supported types.
+func (v *Val[T]) UnmarshalBinary(b []byte) error {
+	if len(b) == 0 {
+		var zero T
+		v.value = zero
+		v.state = StateUnset
+		return nil
+	} else if b[0] == 0 {
+		var zero T
+		v.value = zero
+		v.state = StateNull
+		return nil
+	} else if b[0] != 1 {
+		return errors.New("invalid binary format for omitnull.Val, expected [], [0, ...], or [1, ...]")
+	}
+
+	b = b[1:]
+
+	refVal := reflect.ValueOf(&v.value)
+	if refVal.Type().Implements(globaldata.EncodingBinaryUnmarshalerIntf) {
+		valuer := refVal.Interface().(encoding.BinaryUnmarshaler)
+		if err := valuer.UnmarshalBinary(b); err != nil {
+			return err
+		}
+		v.state = StateSet
+		return nil
+	}
+
+	if refVal.Type().Implements(globaldata.EncodingTextUnmarshalerIntf) {
+		valuer := refVal.Interface().(encoding.TextUnmarshaler)
+		if err := valuer.UnmarshalText(b); err != nil {
+			return err
+		}
+		v.state = StateSet
+		return nil
+	}
+
+	if err := opt.ConvertAssign(&v.value, b); err != nil {
 		return err
 	}
 

@@ -254,6 +254,67 @@ func TestUnmarshalText(t *testing.T) {
 	}
 }
 
+func TestMarshalBinary(t *testing.T) {
+	t.Parallel()
+
+	hello := From("hello")
+	b, err := hello.MarshalBinary()
+	if err != nil {
+		t.Error(err)
+	}
+	if string(b) != "hello" {
+		t.Error("expected hello in ascii bytes")
+	}
+
+	hello.Unset()
+	b, err = hello.MarshalBinary()
+	if err != nil {
+		t.Error(err)
+	}
+	if len(b) != 0 {
+		t.Error("expected empty byte slice")
+	}
+
+	marshaller := From(net.IPv4(1, 1, 1, 1))
+	if b, err := marshaller.MarshalBinary(); err != nil {
+		t.Error(err)
+	} else if !bytes.Equal(b, []byte("1.1.1.1")) {
+		t.Error("wrong value")
+	}
+}
+
+func TestUnmarshalBinary(t *testing.T) {
+	t.Parallel()
+
+	var val Val[string]
+	if err := val.UnmarshalBinary([]byte{}); err != nil {
+		t.Error(err)
+	}
+	checkState(t, val, StateUnset)
+
+	if err := val.UnmarshalBinary([]byte("hello")); err != nil {
+		t.Error(err)
+	}
+	checkState(t, val, StateSet)
+	if val.MustGet() != "hello" {
+		t.Error("wrong value")
+	}
+
+	var unmarshaller Val[net.IP]
+	if err := unmarshaller.UnmarshalBinary([]byte{}); err != nil {
+		t.Error(err)
+	}
+	checkState(t, unmarshaller, StateUnset)
+
+	if err := unmarshaller.UnmarshalBinary([]byte("1.1.1.1")); err != nil {
+		t.Error(err)
+	}
+	checkState(t, unmarshaller, StateSet)
+	if !unmarshaller.MustGet().Equal(net.IPv4(1, 1, 1, 1)) {
+		t.Error("wrong value")
+	}
+}
+
 func TestScan(t *testing.T) {
 	t.Parallel()
 
