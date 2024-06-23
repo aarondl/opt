@@ -266,7 +266,7 @@ func (v Val[T]) MarshalText() ([]byte, error) {
 // anything special, as that would preclude us from encoding the
 // string "null" as a non-null string value.
 func (v *Val[T]) UnmarshalText(text []byte) error {
-	if len(text) == 0 {
+	if text == nil {
 		var zero T
 		v.value = zero
 		v.state = StateNull
@@ -323,7 +323,7 @@ func (v Val[T]) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary tries to reverse the value MarshalBinary operation.
 // See documentation there for details about supported types.
 func (v *Val[T]) UnmarshalBinary(b []byte) error {
-	if len(b) == 0 {
+	if b == nil {
 		var zero T
 		v.value = zero
 		v.state = StateNull

@@ -225,13 +225,19 @@ func TestUnmarshalText(t *testing.T) {
 	if val.MustGet() != "hello" {
 		t.Error("wrong value")
 	}
-
-	var unmarshaller Val[net.IP]
-	if err := unmarshaller.UnmarshalText([]byte("")); err != nil {
+	if err := val.UnmarshalText([]byte("")); err != nil {
 		t.Error(err)
 	}
-	checkState(t, unmarshaller, StateNull)
+	checkState(t, val, StateSet)
+	if val.MustGet() != "" {
+		t.Error("wrong value")
+	}
+	if err := val.UnmarshalText(nil); err != nil {
+		t.Error(err)
+	}
+	checkState(t, val, StateNull)
 
+	var unmarshaller Val[net.IP]
 	if err := unmarshaller.UnmarshalText([]byte("1.1.1.1")); err != nil {
 		t.Error(err)
 	}
@@ -275,21 +281,28 @@ func TestUnmarshalBinary(t *testing.T) {
 
 	var val Val[string]
 	checkState(t, val, StateNull)
-	if err := val.UnmarshalText([]byte("hello")); err != nil {
+	if err := val.UnmarshalBinary([]byte("hello")); err != nil {
 		t.Error(err)
 	}
 	checkState(t, val, StateSet)
 	if val.MustGet() != "hello" {
 		t.Error("wrong value")
 	}
-
-	var unmarshaller Val[net.IP]
-	if err := unmarshaller.UnmarshalText([]byte{}); err != nil {
+	if err := val.UnmarshalBinary(nil); err != nil {
 		t.Error(err)
 	}
-	checkState(t, unmarshaller, StateNull)
+	checkState(t, val, StateNull)
 
-	if err := unmarshaller.UnmarshalText([]byte("1.1.1.1")); err != nil {
+	var unmarshaller Val[net.IP]
+	if err := unmarshaller.UnmarshalBinary([]byte{}); err != nil {
+		t.Error(err)
+	}
+	checkState(t, unmarshaller, StateSet)
+	if !unmarshaller.MustGet().Equal(nil) {
+		t.Error("expected the IP to be nil as that's what happens when given an empty byte slice")
+	}
+
+	if err := unmarshaller.UnmarshalBinary([]byte("1.1.1.1")); err != nil {
 		t.Error(err)
 	}
 	checkState(t, unmarshaller, StateSet)
@@ -372,31 +385,6 @@ func TestStateStringer(t *testing.T) {
 		}
 	}()
 	_ = state(99).String()
-}
-
-func TestEqual(t *testing.T) {
-	t.Parallel()
-
-	a := Val[string]{}
-	b := Val[string]{}
-	if !Equal(a, b) {
-		t.Error("should be equal")
-	}
-
-	a.Set("hello")
-	if Equal(a, b) {
-		t.Error("should not be equal")
-	}
-
-	b.Set("hello")
-	if !Equal(a, b) {
-		t.Error("should be equal")
-	}
-
-	b.Set("hi")
-	if Equal(a, b) {
-		t.Error("should not be equal")
-	}
 }
 
 func checkState[T any](t *testing.T, val Val[T], state state) {
