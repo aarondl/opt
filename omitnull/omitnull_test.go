@@ -68,7 +68,7 @@ func TestConversions(t *testing.T) {
 		t.Error("should be unset")
 	}
 	val.SetPtr(nil)
-	o, ok = val.GetOmit()
+	_, ok = val.GetOmit()
 	if ok {
 		t.Error("should be nil")
 	}
@@ -109,7 +109,7 @@ func TestConversions(t *testing.T) {
 		t.Error("should be unset")
 	}
 	val.SetPtr(nil)
-	o, ok = val.GetOmit()
+	_, ok = val.GetOmit()
 	if ok {
 		t.Error("should be nil")
 	}
