@@ -37,8 +37,10 @@ func ToDriverValue(val any) (driver.Value, error) {
 	switch refVal.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return refVal.Int(), nil
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32:
 		return int64(refVal.Uint()), nil
+	case reflect.Uint64: // Special case for uint64 to avoid overflow
+		return refVal.Uint(), nil
 	case reflect.Float32, reflect.Float64:
 		return refVal.Float(), nil
 	case reflect.Bool:
