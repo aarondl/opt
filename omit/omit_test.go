@@ -143,12 +143,11 @@ func TestMarshalJSON(t *testing.T) {
 	checkJSON(t, val, `"hello"`)
 	val.Unset()
 	checkJSON(t, val, `null`)
-
 }
 
 func TestMarshalJSONIsZero(t *testing.T) {
 	type testStruct struct {
-		ID int
+		ID Val[int] `json:"id,omitzero"`
 	}
 
 	valSlice := Val[[]int]{}
@@ -167,6 +166,22 @@ func TestMarshalJSONIsZero(t *testing.T) {
 	valStruct.Set(nil)
 	if !valStruct.MarshalJSONIsZero() {
 		t.Error("should be zero")
+	}
+
+	b, err := opt.JSONMarshal(testStruct{})
+	if err != nil {
+		t.Error(err)
+	}
+	if string(b) != `{}` {
+		t.Errorf("expected empty json object, got: %s", b)
+	}
+
+	b, err = opt.JSONMarshal(testStruct{ID: From(0)})
+	if err != nil {
+		t.Error(err)
+	}
+	if string(b) != `{"id":0}` {
+		t.Errorf("expected non-empty json object, got: %s", b)
 	}
 }
 

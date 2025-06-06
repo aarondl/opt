@@ -36,21 +36,17 @@ package opt
 import (
 	"database/sql"
 	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
 	"time"
-
-	"github.com/aarondl/json"
 )
 
-// JSONMarshal and JSONUnmarshal can be changed to the stdlib's
-// json.Marshal (or other json package) if you choose not to use the fork.
-//
-// The github.com/aarondl/json fork has correct behavior for omit and omitnull
-// whereas the standard lib encoding/json will produce asymmetrical results
-// where json.Unmarshal(json.Marshal(value)) will fail.
+// JSONMarshal and JSONUnmarshal are used to marshal and unmarshal
+// values to and from JSON. They can be overridden to use a custom
+// JSON library or to add custom marshaling behavior.
 var (
 	JSONMarshal   = json.Marshal
 	JSONUnmarshal = json.Unmarshal

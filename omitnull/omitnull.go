@@ -279,7 +279,17 @@ func (v Val[T]) MustPtr() *T {
 
 // MarshalJSONIsZero returns true if this value should be omitted by the json
 // marshaler.
+//
+// Deprecated: This method was necessary to support true omitting of values
+// using a json fork, since then the std library has added support for this
+// and so we no longer need this method.
 func (v Val[T]) MarshalJSONIsZero() bool {
+	return v.IsZero()
+}
+
+// IsZero returns true if the value is unset and should be omitted by json.
+// This is used with the `omitzero` flag in the std library.
+func (v Val[T]) IsZero() bool {
 	return v.state == StateUnset
 }
 
