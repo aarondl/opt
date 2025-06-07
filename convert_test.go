@@ -51,7 +51,7 @@ type userDefined float64
 type userDefinedSlice []int
 
 type conversionTest struct {
-	s, d interface{} // source and destination
+	s, d any // source and destination
 
 	// following are used if they're non-zero
 	wantint    int64
@@ -64,7 +64,7 @@ type conversionTest struct {
 	wanttime   time.Time
 	wantbool   bool // used if d is of type *bool
 	wanterr    string
-	wantiface  interface{}
+	wantiface  any
 	wantptr    *int64 // if non-nil, *d's pointed value must be equal to *wantptr
 	wantnil    bool   // if true, *d must be *int64(nil)
 	wantusrdef userDefined
@@ -86,7 +86,7 @@ var (
 	scanf64    float64
 	scantime   time.Time
 	scanptr    *int64
-	scaniface  interface{}
+	scaniface  any
 )
 
 var conversionTests = []conversionTest{
@@ -189,10 +189,10 @@ var conversionTests = []conversionTest{
 	{s: "1.5", d: &scanf64, wantf64: float64(1.5)},
 
 	// Pointers
-	{s: interface{}(nil), d: &scanptr, wantnil: true},
+	{s: any(nil), d: &scanptr, wantnil: true},
 	{s: int64(42), d: &scanptr, wantptr: &answer},
 
-	// To interface{}
+	// To any
 	{s: float64(1.5), d: &scaniface, wantiface: float64(1.5)},
 	{s: int64(1), d: &scaniface, wantiface: int64(1)},
 	{s: "str", d: &scaniface, wantiface: "str"},
@@ -211,27 +211,27 @@ var conversionTests = []conversionTest{
 	{s: complex(1, 2), d: &scanstr, wanterr: `unsupported Scan, storing driver.Value type complex128 into type *string`},
 }
 
-func intPtrValue(intptr interface{}) interface{} {
+func intPtrValue(intptr any) any {
 	return reflect.Indirect(reflect.Indirect(reflect.ValueOf(intptr))).Int()
 }
 
-func intValue(intptr interface{}) int64 {
+func intValue(intptr any) int64 {
 	return reflect.Indirect(reflect.ValueOf(intptr)).Int()
 }
 
-func uintValue(intptr interface{}) uint64 {
+func uintValue(intptr any) uint64 {
 	return reflect.Indirect(reflect.ValueOf(intptr)).Uint()
 }
 
-func float64Value(ptr interface{}) float64 {
+func float64Value(ptr any) float64 {
 	return *(ptr.(*float64))
 }
 
-func float32Value(ptr interface{}) float32 {
+func float32Value(ptr any) float32 {
 	return *(ptr.(*float32))
 }
 
-func getTimeValue(ptr interface{}) time.Time {
+func getTimeValue(ptr any) time.Time {
 	return *(ptr.(*time.Time))
 }
 
@@ -242,7 +242,7 @@ func TestConversions(t *testing.T) {
 		if err != nil {
 			errstr = err.Error()
 		}
-		errf := func(format string, args ...interface{}) {
+		errf := func(format string, args ...any) {
 			base := fmt.Sprintf("ConvertAssign #%d: for %v (%T) -> %T, ", n, ct.s, ct.s, ct.d)
 			t.Errorf(base+format, args...)
 		}
@@ -301,7 +301,7 @@ func TestConversions(t *testing.T) {
 				errf("want %q, got: %s", string(ct.wantbytes), s)
 			}
 		}
-		if ifptr, ok := ct.d.(*interface{}); ok {
+		if ifptr, ok := ct.d.(*any); ok {
 			if !reflect.DeepEqual(ct.wantiface, scaniface) {
 				errf("want interface %#v, got %#v", ct.wantiface, scaniface)
 				continue
@@ -309,7 +309,7 @@ func TestConversions(t *testing.T) {
 			if srcBytes, ok := ct.s.([]byte); ok {
 				dstBytes := (*ifptr).([]byte)
 				if len(srcBytes) > 0 && &dstBytes[0] == &srcBytes[0] {
-					errf("copy into interface{} didn't copy []byte data")
+					errf("copy into any didn't copy []byte data")
 				}
 			}
 		}
@@ -343,7 +343,7 @@ func TestNullString(t *testing.T) {
 
 type valueConverterTest struct {
 	c       driver.ValueConverter
-	in, out interface{}
+	in, out any
 	err     string
 }
 
@@ -377,7 +377,7 @@ func TestValueConverters(t *testing.T) {
 func TestRawBytesAllocs(t *testing.T) {
 	var tests = []struct {
 		name string
-		in   interface{}
+		in   any
 		want string
 	}{
 		{"uint64", uint64(12345678), "12345678"},
@@ -396,7 +396,7 @@ func TestRawBytesAllocs(t *testing.T) {
 	}
 
 	buf := make(sql.RawBytes, 10)
-	test := func(name string, in interface{}, want string) {
+	test := func(name string, in any, want string) {
 		if err := ConvertAssign(&buf, in); err != nil {
 			t.Fatalf("%s: ConvertAssign = %v", name, err)
 		}
@@ -430,7 +430,7 @@ func TestRawBytesAllocs(t *testing.T) {
 		t.Fatalf("allocs = %v; want 0", n)
 	}
 
-	// This one involves a convT2E allocation, string -> interface{}
+	// This one involves a convT2E allocation, string -> any
 	n = testing.AllocsPerRun(100, func() {
 		test("string", "foo", "foo")
 	})
