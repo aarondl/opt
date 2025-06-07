@@ -4,7 +4,6 @@ import (
 	"database/sql/driver"
 	"encoding"
 	"reflect"
-	"time"
 )
 
 var (
@@ -14,7 +13,4 @@ var (
 	EncodingTextUnmarshalerIntf   = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
 	EncodingBinaryMarshalerIntf   = reflect.TypeOf((*encoding.BinaryMarshaler)(nil)).Elem()
 	EncodingBinaryUnmarshalerIntf = reflect.TypeOf((*encoding.BinaryUnmarshaler)(nil)).Elem()
-	TimeType                      = reflect.TypeOf(time.Time{})
-	Int64Type                     = reflect.TypeOf(int64(0))
-	ByteSliceType                 = reflect.TypeOf([]byte(nil))
 )
