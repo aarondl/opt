@@ -20,7 +20,7 @@ func TestConstruction(t *testing.T) {
 	val := From("hello")
 
 	checkState(t, val, StateSet)
-	if !val.IsSet() {
+	if !val.IsValue() {
 		t.Error("should be set")
 	}
 
@@ -48,14 +48,14 @@ func TestConversions(t *testing.T) {
 		t.Error("wrong value")
 	}
 	o := val.MustGetOmit()
-	if !o.IsSet() {
+	if !o.IsValue() {
 		t.Error("should be set")
 	}
 	if o.MustGet() != 5 {
 		t.Error("wrong value")
 	}
 	o, ok := val.GetOmit()
-	if !ok || !o.IsSet() {
+	if !ok || !o.IsValue() {
 		t.Error("should be set")
 	}
 	val.Unset()
@@ -80,14 +80,14 @@ func TestConversions(t *testing.T) {
 		t.Error("wrong value")
 	}
 	n := val.MustGetNull()
-	if !n.IsSet() {
+	if !n.IsValue() {
 		t.Error("should be set")
 	}
 	if n.MustGet() != 5 {
 		t.Error("wrong value")
 	}
 	n, ok = val.GetNull()
-	if !ok || !n.IsSet() || n.MustGet() != 5 {
+	if !ok || !n.IsValue() || n.MustGet() != 5 {
 		t.Error("should be set")
 	}
 	val.Null()

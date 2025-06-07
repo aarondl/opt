@@ -17,7 +17,7 @@ func TestConstruction(t *testing.T) {
 
 	val := From("hello")
 	checkState(t, val, StateSet)
-	if !val.IsSet() {
+	if !val.IsValue() {
 		t.Error("should be set")
 	}
 

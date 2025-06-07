@@ -4,12 +4,13 @@
 that separate sub-packages is the right way to build this package and a change in that
 area could significantly break consumers.
 
-Another generic optional package for Go. This one's focus is on ergonomics and
+Opt is another generic optional package for Go. This one's focus is on ergonomics and
 giving the right level of optionality for every situation.
 
 The goal is to be able to create a Go struct or value that can interoperate with
 other language datatypes which may omit a value completely, provide a null
-for that value, or provide the value itself.
+for that value, or provide the value itself, without resorting to pointers and
+putting primitives on the heap.
 
 In addition to the above this package attempts to reasonably implement the
 following useful interfaces for interacting with the wider Go ecosystem:
@@ -22,10 +23,10 @@ following useful interfaces for interacting with the wider Go ecosystem:
 
 The Go standard library provides a limited set of database/sql.NullX types.
 These are helpful for databases but don't work well outside of that. For example
-a JSONified struct with an sql.NullInt32 as of Go 1.18 still marshals as the
+a JSONified struct with an sql.NullInt32 as of Go 1.24 still marshals as the
 following: `{"age":{"Int32":5,"Valid":true}}` which is unexpected by a typical
-JavaScript client. Furthermore they lack ergonomic helpers and constructors
-which makes them grating to consume and to construct._
+JavaScript client (or any other language for that matter). Furthermore they lack
+ergonomic helpers and constructors which makes them grating to consume and to construct.
 
 ## Examples
 
@@ -50,7 +51,7 @@ omitnull.Map(val, func(i int) int { return i+1 }) // yea, it's here too :| :| :|
 
 // Query state
 val.Set(5)
-val.IsSet()   // == true
+val.IsValue() // == true
 val.IsNull()  // == false
 val.IsUnset() // == false
 
@@ -82,7 +83,7 @@ This package provides a package for each permutation of the problem space.
 * If you have a value that can be `unset | value` (non-null, but omittable) then use `omit`
 * If you have a value that can be any of `unset | null | value` use omitnull.
 
-Consider the following Rust types to illustrate the point:
+Consider the following discriminated union types to illustrate the point:
 
 ```rust
 enum Nullable<T> {
@@ -200,7 +201,7 @@ field inside an object:
 
 ```typescript
 interface Example {
-	age?: null | number; // same as: undefined | null | number
+	age: undefined | null | number;
 }
 ```
 
@@ -306,11 +307,15 @@ Either way it still makes reasonable sense to a user when the object update
 occurs in either order because the last user's update will remain which
 is predictable and understandable.
 
-Partial updates is a useful and efficient pattern for updating objects. Its also
+Partial updates is a useful and efficient pattern for updating objects. It's also
 quite convenient for clients who may not have the entire resource, but still
 wish to update a subset of the object's fields. This is one common real-world
 use case for the `omitnull.Val` type which can house all three field value
 types.
+
+Partial updates are not the only reason for having a perfect representation of
+the available values during interoperability with other systems, but it is a salient
+example and real-world use case that occurs often.
 
 # License
 

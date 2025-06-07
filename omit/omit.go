@@ -162,8 +162,8 @@ func (v *Val[T]) Unset() {
 	v.state = StateUnset
 }
 
-// IsSet returns true if v contains a non-null value
-func (v Val[T]) IsSet() bool {
+// IsValue returns true if v contains a value (ie. not omitted/unset)
+func (v Val[T]) IsValue() bool {
 	return v.state == StateSet
 }
 

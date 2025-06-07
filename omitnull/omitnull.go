@@ -170,7 +170,7 @@ func (v Val[T]) MustGetOmit() omit.Val[T] {
 
 // Or returns v or other depending on their states. In general
 // set > null > unset and therefore the one with the state highest in that
-// area will win out.
+// hierarchy will win out.
 //
 //	v     | other | result
 //	------------- | -------
@@ -244,8 +244,9 @@ func (v *Val[T]) SetPtr(val *T) {
 	v.state = StateSet
 }
 
-// IsSet returns true if v contains a non-null value
-func (v Val[T]) IsSet() bool {
+// IsValue returns true if v contains a value, meaning not null or unset
+// as both of those are various versions of absence of a value.
+func (v Val[T]) IsValue() bool {
 	return v.state == StateSet
 }
 
